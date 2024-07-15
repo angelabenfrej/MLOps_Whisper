@@ -1,0 +1,23 @@
+transformers 
+datasets 
+torchaudio 
+gdown 
+accelerate 
+evaluate 
+jiwer 
+tensorboard 
+gradio
+dvc
+mlflow==2.2.2
+notebook
+numpy
+python-box==6.0.2
+pyYAML
+tqdm
+ensure==1.0.2
+joblib
+types-PyYAML
+scipy
+Flask
+Flask-Cors
+-e .
