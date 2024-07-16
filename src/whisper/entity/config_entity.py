@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -25,3 +26,19 @@ class PrepareBaseModelConfig:
     generation_max_length: int
     save_steps: int
     eval_steps: int
+
+
+@dataclass(frozen=True)
+class TrainingConfig:
+    root_dir: Path
+    trained_model_path: Path
+    updated_base_model_path: Path
+    training_data: Path
+
+
+@dataclass
+class DataCollatorSpeechSeq2SeqWithPadding:
+        processor: Any
+        decoder_start_token_id: int
+
+        
