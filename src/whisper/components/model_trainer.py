@@ -7,7 +7,7 @@ from transformers import Trainer, TrainingArguments, WhisperForConditionalGenera
 from dataclasses import dataclass
 from datasets import Dataset , Audio
 import torch
-
+import evaluate
 
 
 
@@ -86,7 +86,7 @@ class Training:
         self.train_dataset = dataset.train_test_split(test_size=0.2)["train"]
         self.eval_dataset = dataset.train_test_split(test_size=0.2)["test"]
 
-
+    metric = evaluate.load("wer")
 
     def compute_metrics(self, pred):
         pred_ids = pred.predictions
