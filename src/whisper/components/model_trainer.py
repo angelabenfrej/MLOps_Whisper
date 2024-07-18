@@ -1,28 +1,21 @@
 import os
-from pydub import AudioSegment
 from dataclasses import dataclass
 from typing import Any, Dict, List, Union
 from src.whisper.config.configuration import TrainingConfig
-from transformers import Trainer, TrainingArguments, WhisperForConditionalGeneration, WhisperProcessor
 from dataclasses import dataclass
 from datasets import Dataset , Audio
 import torch
-import evaluate
+from transformers import WhisperForConditionalGeneration, WhisperProcessor, WhisperTokenizer, WhisperFeatureExtractor, Trainer, TrainingArguments
 
 
-
-
-
-AudioSegment.ffmpeg = "ffmpeg"
 class Training:
     def __init__(self, config: TrainingConfig):
         self.config = config
-        self.processor = WhisperProcessor.from_pretrained("openai/whisper-small")
+        self.processor = WhisperProcessor.from_pretrained("openai/whisper-small" ,language="en", task="transcribe" )
+        self.tokenizer = WhisperTokenizer.from_pretrained("openai/whisper-small", language="en", task="transcribe")
+        self.feature_extractor = WhisperFeatureExtractor.from_pretrained("openai/whisper-small")
     def get_model(self):
         self.model = WhisperForConditionalGeneration.from_pretrained(self.config.updated_base_model_path)
-        self.model.generation_config.language = "english"
-        self.model.generation_config.task = "transcribe"
-        self.model.generation_config.forced_decoder_ids = None
 
     def load_data(self):
         import pandas as pd
@@ -39,9 +32,10 @@ class Training:
         # Load and transform audio
         def load_and_transform_audio(path):
             try:
-                file_path = os.path.join(audio_folder, path)
-                audio= AudioSegment.from_file(file_path)
-                audio_array = np.array(audio.get_array_of_samples()).astype(np.float32)
+                file_path = os.path.join(audio_folder, str(path))
+                print(f"Processing file: {file_path}")  
+                waveform, sampling_rate = torchaudio.load(file_path)
+                audio_array = waveform.numpy().astype(np.float32)
                 audio_entry = {
                     'path': path,
                     'array': audio_array.flatten(),
@@ -49,19 +43,11 @@ class Training:
                 }
                 return audio_entry
             except Exception as e:
+                print(f"Error processing audio file {path}: {str(e)}")
                 return None
 
         data['audio'] = data['path'].apply(load_and_transform_audio)
         data = data.dropna(subset=['audio'])
-        audio_entries = []
-        for index, row in data.iterrows():
-            audio_dict = load_and_transform_audio(row)
-            if audio_dict:
-                audio_entries.append(audio_dict)
-            else:
-        # Handle cases where audio loading fails or path is NaN
-                audio_entries.append(None)
-        # Remove unnecessary columns
         columns_to_remove = ['client_id', 'path', 'sentence_id', 'sentence_domain', 'up_votes', 'down_votes', 'age', 'gender', 'accents', 'variant', 'locale', 'segment']
         data = data.drop(columns=columns_to_remove)
 
@@ -75,29 +61,16 @@ class Training:
             audio = batch["audio"]
 
             # compute log-Mel input features from input audio array
-            batch["input_features"] = self.processor.feature_extractor(audio["array"], sampling_rate=audio["sampling_rate"]).input_features[0]
+            batch["input_features"] = self.feature_extractor(audio["array"], sampling_rate=audio["sampling_rate"]).input_features[0]
 
             # encode target text to label ids
-            batch["labels"] = self.processor.tokenizer(batch["sentence"], padding=True).input_ids
+            batch["labels"] = self.tokenizer(batch["sentence"], padding=True).input_ids
             return batch
 
         dataset = dataset.map(prepare_dataset, remove_columns=dataset.column_names)
 
         self.train_dataset = dataset.train_test_split(test_size=0.2)["train"]
         self.eval_dataset = dataset.train_test_split(test_size=0.2)["test"]
-
-    metric = evaluate.load("wer")
-
-    def compute_metrics(self, pred):
-        pred_ids = pred.predictions
-        label_ids = pred.label_ids
-        label_ids[label_ids == -100] = self.processor.tokenizer.pad_token_id
-
-        pred_str = self.processor.tokenizer.batch_decode(pred_ids, skip_special_tokens=True)
-        label_str = self.processor.tokenizer.batch_decode(label_ids, skip_special_tokens=True)
-
-        wer = 100 * self.metric.compute(predictions=pred_str, references=label_str)
-        return {"wer": wer}
 
     def train(self):
         training_args = TrainingArguments(
@@ -106,7 +79,7 @@ class Training:
             gradient_accumulation_steps=1,  # increase by 2x for every 2x decrease in batch size
             learning_rate=1e-5,
             warmup_steps=500,
-            max_steps=3,
+            max_steps=1,
             gradient_checkpointing=True,
             fp16=True,
             evaluation_strategy="steps",
@@ -157,10 +130,12 @@ class Training:
             args=training_args,
             train_dataset=self.train_dataset,
             eval_dataset=self.eval_dataset,
-            tokenizer=self.processor.feature_extractor,
+            tokenizer=self.tokenizer,
             data_collator=data_collator
             
         )
 
         trainer.train()
         self.model.save_pretrained(self.config.trained_model_path)
+
+
