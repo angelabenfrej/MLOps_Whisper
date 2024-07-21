@@ -1,7 +1,7 @@
 gradient_accumulation_steps: 1  
 learning_rate:  0.00001
 warmup_steps: 500
-max_steps: 1
+max_steps: 10
 gradient_checkpointing: True
 fp16: True
 per_device_eval_batch_size: 8
