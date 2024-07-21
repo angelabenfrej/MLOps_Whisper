@@ -3,6 +3,8 @@ from src.whisper.utils.common import read_yaml, create_directories
 from src.whisper.entity.config_entity import DataIngestionConfig
 from src.whisper.entity.config_entity import PrepareBaseModelConfig
 from src.whisper.entity.config_entity import TrainingConfig
+from src.whisper.entity.config_entity import EvaluationConfig
+
 
 class ConfigurationManager:
     def __init__(
@@ -65,5 +67,15 @@ class ConfigurationManager:
         )
 
         return training_config
+    
+    
+    def get_evaluation_config(self) -> EvaluationConfig:
+        eval_config = EvaluationConfig(
+            path_of_model="artifacts/training/model",
+            training_data="artifacts/data_ingestion/",
+            mlflow_uri="https://dagshub.com/benfredj.angela15/MLOps_Whisper.mlflow",
+            all_params=self.params,
+        )
+        return eval_config
 
       

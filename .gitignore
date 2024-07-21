@@ -162,3 +162,7 @@ cython_debug/
 #.idea/
 
 artifacts/*
+
+mlruns/*
+
+scores.json

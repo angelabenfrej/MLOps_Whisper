@@ -1,5 +1,5 @@
 gradient_accumulation_steps: 1  
-learning_rate:  0.00001
+learning_rate:  0.001
 warmup_steps: 500
 max_steps: 10
 gradient_checkpointing: True

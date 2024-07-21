@@ -64,5 +64,13 @@ class DataCollatorSpeechSeq2SeqWithPadding:
                     batch["labels"] = labels
 
                     return batch
+        
+
+@dataclass(frozen=True)
+class EvaluationConfig:
+    path_of_model: Path
+    training_data: Path
+    all_params: dict
+    mlflow_uri: str
 
             
