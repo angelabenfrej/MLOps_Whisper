@@ -167,7 +167,6 @@ dvc
 pydub 
 ffmpeg-python
 soundfile
-mlflow==2.2.2
 notebook
 numpy
 python-box==6.0.2
