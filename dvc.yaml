@@ -1,0 +1,72 @@
+stages:
+  data_ingestion:
+    cmd: python src/whisper/pipeline/stage01_data_ingestion.py
+    deps:
+      - src/whisper/pipeline/stage01_data_ingestion.py
+      - config/config.yaml
+    outs:
+      - artifacts/data_ingestion/Data_Whisper
+
+
+  prepare_base_model:
+    cmd: python src/whisper/pipeline/stage_02_prepare_base_model.py
+    deps:
+      - src/whisper/pipeline/stage_02_prepare_base_model.py
+      - config/config.yaml
+    outs:
+      - artifacts/prepare_base_model
+
+
+  training:
+    cmd: python src/whisper/pipeline/stage_03_model_trainer.py
+    deps:
+      - src/whisper/pipeline/stage_03_model_trainer.py
+      - config/config.yaml
+      - artifacts/data_ingestion/Data_Whisper
+      - artifacts/prepare_base_model
+    params:
+      - gradient_accumulation_steps
+      - learning_rate
+      - warmup_steps
+      - max_steps
+      - gradient_checkpointing
+      - fp16
+      - per_device_eval_batch_size
+      - predict_with_generate
+      - generation_max_length
+      - save_steps
+      - eval_steps
+      - logging_steps
+      - report_to
+      - load_best_model_at_end
+      - metric_for_best_model
+    outs:
+      - artifacts/training/model
+
+
+  evaluation:
+    cmd: python src/whisper/pipeline/stage_04_model_evaluation_mlflow.py
+    deps:
+      - src/whisper/pipeline/stage_04_model_evaluation_mlflow.py
+      - config/config.yaml
+      - artifacts/data_ingestion/Data_Whisper
+      - artifacts/training/model
+    params:
+      - gradient_accumulation_steps
+      - learning_rate
+      - warmup_steps
+      - max_steps
+      - gradient_checkpointing
+      - fp16
+      - per_device_eval_batch_size
+      - predict_with_generate
+      - generation_max_length
+      - save_steps
+      - eval_steps
+      - logging_steps
+      - report_to
+      - load_best_model_at_end
+      - metric_for_best_model
+    metrics:
+    - scores.json:
+        cache: false
