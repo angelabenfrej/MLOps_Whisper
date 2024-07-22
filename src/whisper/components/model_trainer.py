@@ -80,6 +80,7 @@ class Training:
             warmup_steps=500,
             gradient_checkpointing=True,
             fp16=True,
+            max_steps=20,
             evaluation_strategy="steps",
             per_device_eval_batch_size=8,
             save_steps=1000,
