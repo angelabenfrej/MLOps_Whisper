@@ -1,0 +1,36 @@
+schema: '2.0'
+stages:
+  data_ingestion:
+    cmd: python src/whisper/pipeline/stage01_data_ingestion.py
+    deps:
+    - path: config/config.yaml
+      hash: md5
+      md5: ed2638abd2d8cb9a0f9b5e81d6aedeb5
+      size: 617
+    - path: src/whisper/pipeline/stage01_data_ingestion.py
+      hash: md5
+      md5: 51608f98a24bedd78fb55bdbff13b040
+      size: 906
+    outs:
+    - path: artifacts/data_ingestion/Data_Whisper
+      hash: md5
+      md5: a133e7f1e1169afb7382e753fcaed4e1.dir
+      size: 350994
+      nfiles: 11
+  prepare_base_model:
+    cmd: python src/whisper/pipeline/stage_02_prepare_base_model.py
+    deps:
+    - path: config/config.yaml
+      hash: md5
+      md5: ed2638abd2d8cb9a0f9b5e81d6aedeb5
+      size: 617
+    - path: src/whisper/pipeline/stage_02_prepare_base_model.py
+      hash: md5
+      md5: a24c7513761bc08070c81c0e4e84a525
+      size: 993
+    outs:
+    - path: artifacts/prepare_base_model
+      hash: md5
+      md5: 571acfab1c1e131f7a05d9b8f45ac908.dir
+      size: 1934003228
+      nfiles: 6
