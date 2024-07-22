@@ -8,12 +8,16 @@ jiwer
 tensorboard 
 gradio
 dvc
+pydub 
+ffmpeg-python
+soundfile
 mlflow==2.2.2
 notebook
 numpy
 python-box==6.0.2
 pyYAML
 tqdm
+transformers[torch]
 ensure==1.0.2
 joblib
 types-PyYAML
