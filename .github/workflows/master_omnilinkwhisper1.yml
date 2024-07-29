@@ -1,0 +1,51 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
+name: Build and deploy container app to Azure Web App - omnilinkwhisper1
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: 'ubuntu-latest'
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Log in to registry
+      uses: docker/login-action@v2
+      with:
+        registry: https://omnilinkwhisper.azurecr.io/
+        username: ${{ secrets.AzureAppService_ContainerUsername_3dc442934f9a49e6b95efaaee067ade4 }}
+        password: ${{ secrets.AzureAppService_ContainerPassword_69d3d77b0af940fc96f66e209be5fced }}
+
+    - name: Build and push container image to registry
+      uses: docker/build-push-action@v3
+      with:
+        push: true
+        tags: omnilinkwhisper.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_3dc442934f9a49e6b95efaaee067ade4 }}/omnilinkwhisper:${{ github.sha }}
+        file: ./Dockerfile
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: 'production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+
+    steps:
+    - name: Deploy to Azure Web App
+      id: deploy-to-webapp
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'omnilinkwhisper1'
+        slot-name: 'production'
+        publish-profile: ${{ secrets.AzureAppService_PublishProfile_b75e941a01d54ff793e34fac5dfe28bd }}
+        images: 'omnilinkwhisper.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_3dc442934f9a49e6b95efaaee067ade4 }}/omnilinkwhisper:${{ github.sha }}'
