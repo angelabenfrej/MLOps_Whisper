@@ -45,4 +45,4 @@ class PredictionPipeline:
             predicted_ids = self.model.generate(input_features)
             transcription = self.processor.batch_decode(predicted_ids, skip_special_tokens=True)
 
-        return [{"transcription": transcription[0]}]
+        return transcription[0]
